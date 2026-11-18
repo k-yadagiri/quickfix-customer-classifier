@@ -1,0 +1,41 @@
+id,message,language,intent,category,urgency
+1,"Hi, my kitchen sink is blocked since yesterday, water is not going down. Can someone come tomorrow morning?",english,book_service,plumbing,normal
+2,"There are sparks coming from the switchboard in the hall, please send an electrician fast",english,book_service,electrical,high
+3,"AC is not cooling at all, it only blows normal air. Need a technician this week.",english,book_service,ac_repair,normal
+4,How much do you charge for a full home deep cleaning for a 2BHK?,english,price_enquiry,cleaning,low
+5,Your technician came yesterday for my washing machine but it's still making the same noise. Not happy.,english,complaint,appliance_repair,normal
+6,"I booked AC service for Saturday 10am, can we move it to Sunday evening?",english,reschedule,ac_repair,normal
+7,"Please cancel my painting booking, we are postponing the work.",english,cancel,painting,low
+8,"Technician was supposed to come at 11, it's 1pm now. Where is he?",english,status_check,none,normal
+9,"Cockroaches all over the kitchen, need pest control done this Sunday.",english,book_service,pest_control,normal
+10,My wardrobe door hinge broke and the door is hanging. Need a carpenter.,english,book_service,carpentry,normal
+11,Water is leaking from the bathroom ceiling and now the floor is flooding,english,book_service,plumbing,high
+12,What are your charges for fridge repair? It's not cooling.,english,price_enquiry,appliance_repair,low
+13,The electrician overcharged me. He said 300 on the phone and took 900.,english,complaint,electrical,normal
+14,Hello,english,other,none,low
+15,Are you hiring technicians? I have 3 years of AC experience.,english,other,none,low
+16,Can you shift my geyser repair from today to tomorrow? I won't be home.,english,reschedule,appliance_repair,normal
+17,Burning smell from the AC indoor unit and it switched off by itself,english,book_service,ac_repair,high
+18,Is my house painting booking confirmed? I didn't get any message.,english,status_check,painting,normal
+19,"I want to get my 3BHK painted next month, can someone come for an estimate?",english,book_service,painting,normal
+20,Your plumber fixed the tap last week but it started leaking again today,english,complaint,plumbing,normal
+21,"AC nundi water leak avtundi, repair ki evaraina pampandi",tenglish,book_service,ac_repair,normal
+22,"Bathroom tap leak avtundi, repu morning plumber kavali",tenglish,book_service,plumbing,normal
+23,Mee technician ninna vachadu kani fan inka tiragatledu. Malli vachi chudandi,tenglish,complaint,electrical,normal
+24,1BHK deep cleaning ki entha avtundi?,tenglish,price_enquiry,cleaning,low
+25,"Repu painting booking undi, cancel cheyyandi please",tenglish,cancel,painting,low
+26,"Switch board lo current kottindi, chala bhayam ga undi",tenglish,book_service,electrical,high
+27,"Technician inka raledu, 2 hours nundi wait chestunna",tenglish,status_check,none,normal
+28,Saturday AC service ni Monday ki marchandi,tenglish,reschedule,ac_repair,normal
+29,"Intlo cheemalu chala unnai, pest control cheyinchali",tenglish,book_service,pest_control,normal
+30,"Fridge cooling ledu, repair ki entha charge chestaru?",tenglish,price_enquiry,appliance_repair,low
+31,"Mee carpenter door sarigga fix cheyyaledu, malli open aipotundi. Waste of money",tenglish,complaint,carpentry,normal
+32,Hi anna,tenglish,other,none,low
+33,"Washing machine repair cancel cheyyandi, adi already baagu ayyindi",tenglish,cancel,appliance_repair,low
+34,Naa booking confirm ayyinda? Inka message raledu,tenglish,status_check,none,normal
+35,"వంటగది సింక్ నుండి నీళ్లు కారుతున్నాయి, ప్లంబర్ కావాలి",telugu,book_service,plumbing,normal
+36,ఏసీ సర్వీస్ బుకింగ్ ని రేపటికి మార్చండి,telugu,reschedule,ac_repair,normal
+37,"స్విచ్ బోర్డ్ నుండి పొగ వస్తోంది, త్వరగా రండి",telugu,book_service,electrical,high
+38,మీ టెక్నీషియన్ ఇంకా రాలేదు,telugu,status_check,none,normal
+39,ఇంటికి పెయింటింగ్ చేయడానికి ఎంత ఖర్చు అవుతుంది?,telugu,price_enquiry,painting,low
+40,నా క్లీనింగ్ బుకింగ్ క్యాన్సిల్ చేయండి,telugu,cancel,cleaning,low
