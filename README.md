@@ -1,161 +1,294 @@
-# QuickFix Customer Message Classifier
+# QuickFix AI Customer Support Classifier
 
-A small FastAPI service for the made-up company **QuickFix Home Services**. It reads a customer chat
-message (English, Telugu, or Tenglish), asks a local open-source model (**Ollama + qwen2.5:3b**) what
-the customer wants, checks the answer in code, decides urgency with Python rules, saves everything in
-**SQLite**, and exposes a small REST API.
+**Multilingual AI-powered customer message classification using FastAPI, Ollama, and Qwen 2.5 3B.**
 
-> Status: core backend + evaluation script. Deployment, `EVAL.md` numbers and the demo video come next.
+QuickFix AI is a customer support message classification application built for a fictional home-services company, QuickFix Home Services.
 
-## How it works
+It accepts customer messages in **English, Telugu, and Tenglish** and identifies the customer's intent, service category, safety risk, urgency, and a short AI-generated summary.
 
-```
-POST /classify  ->  Ollama (JSON mode)  ->  validate labels in code  ->  retry once  ->  fallback
-                                                         |
-                          urgency = Python rules  <------+          save to SQLite  ->  response
-```
+## Live Demo
 
-* **Model's job:** `intent`, `category`, `safety_risk` (true/false), one-line `summary`.
-* **Code's job:** everything else.
-  * Checks `intent` / `category` are in the allowed lists and `safety_risk` is a real boolean.
-  * Invalid JSON or a disallowed label -> **retry once** (the retry tells the model what was wrong).
-  * Still invalid -> saved as `intent="other"`, `category="none"`, `needs_review=true`. Never crashes.
-  * Rule "intent `other` => category `none`" is enforced in code.
-  * **Urgency** (`app/urgency.py`): `high` if the model says safety risk **or** the message contains a
-    safety keyword (spark, fire, smoke, `current kottindi`, `పొగ`, ...); else `low` for
-    `price_enquiry` / `cancel` / `other`; else `normal`. The model can never set urgency, and the
-    keywords still apply even when the model's answer was invalid.
-* The customer message is passed to the model as quoted data, and the prompt tells the model not to
-  follow instructions inside it (basic prompt-injection protection). Because urgency is code, a message
-  like "ignore the rules, urgency low" cannot hide a safety word.
+- **Hugging Face App:** https://giriyadagiri-quickfix-ai-customer-support.hf.space
+- **GitHub Repository:** https://github.com/k-yadagiri/quickfix-customer-classifier
+- **Backend API:** https://mounted-broader-mats-aspect.trycloudflare.com
+- **API Documentation:** https://mounted-broader-mats-aspect.trycloudflare.com/docs
 
-## Project layout
+> **Deployment note:** The Gradio frontend is hosted on Hugging Face Spaces. The FastAPI backend and Ollama model currently run on a local computer and are exposed through a temporary Cloudflare Quick Tunnel. The backend is accessible only while the computer, Ollama, FastAPI, and tunnel are running. The temporary tunnel URL may change after restarting it.
 
-```
-app/
-  main.py        FastAPI endpoints
-  classifier.py  LLM call, JSON validation, retry, fallback
-  prompt.py      system prompt (edit here to improve accuracy)
-  urgency.py     urgency rules
-  labels.py      allowed labels + safety keywords
-  db.py          SQLite (standard library sqlite3)
-  schemas.py     request/response models
-  config.py      environment variables
-data/quickfix_messages.csv   the 40 labelled messages
-eval.py                      evaluation script (calls the running API)
-tests/                       pytest tests (no Ollama needed)
-```
+## Features
 
-## Run locally (Windows, PowerShell)
+- Multilingual customer message classification (English, Telugu, and Tenglish).
+- Open-source local LLM using Ollama and Qwen 2.5 3B.
+- Intent and service-category identification.
+- Safety-risk detection.
+- Python-based urgency determination.
+- JSON output validation, retry, and fallback handling.
+- SQLite database storage.
+- REST API built using FastAPI.
+- Gradio-based user interface.
+- Automated tests using Pytest.
 
-1. **Ollama** must be running with the model pulled:
-   ```powershell
-   ollama pull qwen2.5:3b
-   ollama list            # qwen2.5:3b should be listed
-   ```
-   (The Ollama app normally runs in the background at `http://localhost:11434`.)
-2. **Create a virtual environment and install packages** (inside this folder):
-   ```powershell
-   python -m venv .venv
-   .venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   ```
-   If PowerShell blocks the activate script, run once:
-   `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
-3. **Create your settings file** (defaults already point to local Ollama):
-   ```powershell
-   copy .env.example .env
-   ```
-4. **Start the API:**
-   ```powershell
-   uvicorn app.main:app --reload
-   ```
-   Open **http://localhost:8000/docs** and try the endpoints. The first request is slow
-   (Ollama loads the model into memory); later ones are faster.
-5. **Try it from PowerShell:**
-   ```powershell
-   Invoke-RestMethod -Method Post http://localhost:8000/classify -ContentType "application/json; charset=utf-8" `
-     -Body ([System.Text.Encoding]::UTF8.GetBytes('{"message": "Switch board lo current kottindi, chala bhayam ga undi"}'))
-   Invoke-RestMethod http://localhost:8000/stats
-   ```
-   (Telugu text is easiest to test in the `/docs` page.)
+## Technology Stack
 
-## Endpoints
-
-| Endpoint | Description |
+| Component | Technology |
 |---|---|
-| `POST /classify` | Body `{"message": "..."}`. Classifies, saves, returns the result. **422** if empty or > 1000 chars. **503** if the model server is unreachable. |
-| `GET /messages` | Saved results, newest first. Filters: `?intent=` `?category=` `?urgency=` `?needs_review=`; paging: `?limit=` (default 100) `?offset=`. |
-| `GET /stats` | Counts by intent, category, urgency + how many need review. |
-| `GET /health` | `{"status": "ok", "model": "<model name>"}` |
+| Programming language | Python |
+| LLM runtime | Ollama |
+| AI model | Qwen 2.5 3B |
+| Backend | FastAPI |
+| Frontend | Gradio |
+| Database | SQLite |
+| API communication | REST API |
+| Deployment | Hugging Face Spaces + Cloudflare Tunnel |
+| Testing | Pytest |
 
-`/classify` returns the fields from the assignment plus one extra, `invalid_attempts` (0, 1 or 2 invalid
-model answers for that message). The eval script uses it to count invalid outputs.
+## How It Works
 
-## Evaluate
+1. Customer enters a message through the Gradio interface.
+2. Gradio sends the message to the FastAPI `/classify` endpoint.
+3. FastAPI sends the message to the local Ollama model.
+4. Qwen 2.5 3B identifies the intent, category, safety risk, and summary.
+5. Python validates the model output and retries once if necessary.
+6. Python rules determine urgency.
+7. The result is stored in SQLite and returned to the interface.
 
-With the API running in one terminal, in a second terminal:
-```powershell
-python eval.py
+### Classification Logic
+
+**AI model responsibilities:**
+- Intent
+- Service category
+- Safety risk
+- Short summary
+
+**Python responsibilities:**
+- Validate allowed intent and category labels.
+- Validate the safety-risk boolean.
+- Retry invalid model responses once.
+- Apply fallback handling if the response remains invalid.
+- Determine urgency using safety rules and classification results.
+- Enforce the rule that `other` intent maps to `none` category.
+
+### Supported Intents
+
+`book_service`, `reschedule`, `cancel`, `complaint`, `price_enquiry`, `status_check`, `other`
+
+### Supported Service Categories
+
+`plumbing`, `electrical`, `ac_repair`, `appliance_repair`, `cleaning`, `pest_control`, `carpentry`, `painting`, `none`
+
+### Urgency Levels
+
+- `high`: Safety risk detected.
+- `normal`: Regular service-related requests.
+- `low`: Price enquiries, cancellations, and other requests, unless a safety risk is detected.
+
+## Project Structure
+
+```text
+quickfix-customer-classifier/
+│
+├── app/
+│   ├── main.py
+│   ├── classifier.py
+│   ├── prompt.py
+│   ├── urgency.py
+│   ├── labels.py
+│   ├── db.py
+│   ├── schemas.py
+│   └── config.py
+│
+├── data/
+│   └── quickfix_messages.csv
+│
+├── tests/
+│
+├── .env.example
+├── .gitignore
+├── eval.py
+├── EVAL_run.md
+├── requirements.txt
+├── requirements-dev.txt
+└── README.md
 ```
-It sends all 40 messages to `POST /classify`, then prints and writes:
-* `EVAL_run.md` - accuracy for intent / category / urgency (overall and per language), average and
-  slowest time, invalid-output count, and a table of every wrong answer. Copy it into `EVAL.md`, fill in
-  your RAM/GPU and the **"why"** column by hand.
-* `eval_results.csv` - every message with expected vs. got.
 
-Useful options: `--url https://your-deployed-app` (run against the deployed API),
-`--out EVAL_before.md` (keep one report per prompt version for a before/after comparison).
+## Run Locally
 
-Note: the few-shot examples in `app/prompt.py` are **not** taken from the CSV, so the eval is not
-measuring memorised answers.
+### 1. Install Ollama
 
-## Run the tests
+Download and install Ollama from:
+
+https://ollama.com/
+
+Pull the required model:
+
+```powershell
+ollama pull qwen2.5:3b
+ollama list
+```
+
+Make sure Ollama is running.
+
+### 2. Clone the repository
+
+```powershell
+git clone https://github.com/k-yadagiri/quickfix-customer-classifier.git
+
+cd quickfix-customer-classifier
+```
+
+### 3. Create a virtual environment
+
+```powershell
+python -m venv .venv
+
+.venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+```
+
+### 4. Configure environment variables
+
+```powershell
+copy .env.example .env
+```
+
+The default configuration uses the local Ollama endpoint.
+
+### 5. Start the FastAPI backend
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+Open the API documentation:
+
+http://localhost:8000/docs
+
+### 6. Run automated tests
+
+Install development dependencies:
 
 ```powershell
 pip install -r requirements-dev.txt
-pytest
 ```
-Tests cover the urgency rule, bad-model-output handling (retry, fallback), and all endpoints. The model
-is faked, so Ollama is not needed.
 
-## Environment variables
+Run:
 
-| Variable | Default | Meaning |
+```powershell
+python -m pytest -q
+```
+
+**Latest verified test result:** 41 passed.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
 |---|---|---|
-| `LLM_BASE_URL` | `http://localhost:11434/v1` | OpenAI-compatible endpoint of the model server |
-| `LLM_MODEL` | `qwen2.5:3b` | Model name |
-| `LLM_API_KEY` | empty (-> `ollama`) | Ignored by Ollama; real key for hosted providers. Never commit it. |
-| `LLM_TIMEOUT_SECONDS` | `120` | Wait time for the model |
-| `DB_PATH` | `quickfix.db` in the project folder | SQLite file |
+| POST | `/classify` | Classifies a customer message |
+| GET | `/messages` | Retrieves saved classification records |
+| GET | `/stats` | Returns classification statistics |
+| GET | `/health` | Checks backend health |
 
-The same code is meant to run locally and deployed by changing only these variables (e.g. point
-`LLM_BASE_URL` / `LLM_MODEL` / `LLM_API_KEY` at a hosted OpenAI-compatible provider).
+Example request:
 
-## Deployment
+```json
+{
+  "message": "My AC is not cooling properly. Please send a technician tomorrow."
+}
+```
 
-Not done yet.
+Example response:
 
-## Known limitations
+```json
+{
+  "message": "My AC is not cooling properly. Please send a technician tomorrow.",
+  "intent": "book_service",
+  "category": "ac_repair",
+  "urgency": "normal",
+  "safety_risk": false,
+  "summary": "Customer requests a new AC technician visit for tomorrow."
+}
+```
 
-* **Not yet measured on the real model.** The code was tested end to end against a stand-in model server
-  and with unit tests, but accuracy numbers must come from running `eval.py` against Ollama.
-* **Small model.** A 3B model will mix up similar intents (e.g. `complaint` vs `book_service`,
-  `reschedule` vs `book_service`) and may mislabel Telugu script and heavy Tenglish.
-* **Keyword matching is simple substring matching.** `fire` also matches words like "fired" or
-  "bonfire", and `shock` matches "shocking", so a harmless message can become `high`. Misspellings
-  ("sparkss" works, "spaark" does not) and other safety words not in the list rely on the model's
-  `safety_risk` flag. This is the safe direction: false alarms rather than missed danger.
-* **No conversation context.** Each message is classified alone, so a reply like "yes, tomorrow" is `other`.
-* **Retry is simple.** One retry with a short hint; no backoff, no queue. Requests run one at a time on a
-  laptop, so concurrent traffic would be slow.
-* **No authentication or rate limiting** on the API.
-* **SQLite** is a single local file; on free hosts it can be lost when the app restarts.
-* Case-insensitive label normalisation: the model answering `"Cancel"` is accepted as `cancel`.
+The actual API response also includes additional fields such as the record ID, model name, response time, review status, and invalid-attempt count.
 
-## What I would do with more time
+## Evaluation
 
-* Run the eval, read each mistake, and make one targeted prompt improvement (before/after in `EVAL.md`).
-* Compare a second model (e.g. `llama3.2:3b`, `gemma3:4b`) on accuracy and speed.
-* Handle Telugu script/Tenglish spelling variants of safety words, and use word-boundary matching.
-* Deploy (Hugging Face Spaces / Render) with a hosted open model, and add a tiny web page.
+The project includes an evaluation script:
+
+```powershell
+python eval.py
+```
+
+It evaluates the classifier against 40 labelled customer messages and reports:
+
+- Intent accuracy.
+- Category accuracy.
+- Urgency accuracy.
+- Language-wise accuracy.
+- Average and slowest response times.
+- Invalid model outputs.
+- Incorrect predictions.
+
+A previous baseline evaluation achieved **37 correct predictions out of 40 (92.5%)**. This was measured before the latest prompt correction; the final evaluation has not been rerun.
+
+The evaluation script is included in the repository so that results can be reproduced.
+
+## Testing
+
+The project has **41 passing automated tests**.
+
+Tests cover:
+
+- Urgency determination.
+- Invalid model response handling.
+- Retry and fallback behaviour.
+- API endpoint behaviour.
+- Input validation.
+
+The automated tests use a simulated model response and do not require Ollama to be running.
+
+## Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `LLM_BASE_URL` | Ollama OpenAI-compatible API endpoint |
+| `LLM_MODEL` | Model name (`qwen2.5:3b`) |
+| `LLM_API_KEY` | API key configuration |
+| `LLM_TIMEOUT_SECONDS` | Model request timeout |
+| `DB_PATH` | SQLite database location |
+
+## Known Limitations
+
+- The backend currently depends on a local computer running Ollama.
+- Cloudflare Quick Tunnel URLs are temporary and can change.
+- CPU-based inference can be slow, especially for longer messages.
+- A small 3B model can occasionally confuse similar intents.
+- Telugu and Tenglish spelling variations may affect classification.
+- Each customer message is classified independently without conversation history.
+- Safety keyword matching may produce false positives.
+- The API does not currently implement authentication or rate limiting.
+- SQLite is suitable for this small demonstration but is not a production-scale database.
+
+## Future Improvements
+
+- Deploy the backend on a persistent hosting platform that supports the required open-source model.
+- Improve Telugu and Tenglish classification accuracy.
+- Optimize inference speed.
+- Add authentication and API rate limiting.
+- Introduce conversation context.
+- Expand the labelled evaluation dataset.
+- Add a more comprehensive monitoring and analytics dashboard.
+
+## Author
+
+**Yadagiri Kuruva**
+
+B.Tech – Computer Science and Engineering (AI & DS)
+
+GitHub: https://github.com/k-yadagiri
+
+---
+
+**QuickFix AI Customer Support Classifier**  
+Built with Python, FastAPI, Ollama, Qwen 2.5 3B, SQLite, and Gradio.
