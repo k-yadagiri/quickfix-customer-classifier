@@ -8,12 +8,12 @@ It accepts customer messages in **English, Telugu, and Tenglish** and identifies
 
 ## Live Demo
 
-- **Hugging Face App:** https://giriyadagiri-quickfix-ai-customer-support.hf.space
+- **Hugging Face Application:** https://giriyadagiri-quickfix-ai-customer-support.hf.space
 - **GitHub Repository:** https://github.com/k-yadagiri/quickfix-customer-classifier
-- **Backend API:** https://mounted-broader-mats-aspect.trycloudflare.com
-- **API Documentation:** https://mounted-broader-mats-aspect.trycloudflare.com/docs
+- **Backend Health Check:** https://mounted-broader-mats-aspect.trycloudflare.com/health
+- **Interactive API Documentation (Swagger):** https://mounted-broader-mats-aspect.trycloudflare.com/docs
 
-> **Deployment note:** The Gradio frontend is hosted on Hugging Face Spaces. The FastAPI backend and Ollama model currently run on a local computer and are exposed through a temporary Cloudflare Quick Tunnel. The backend is accessible only while the computer, Ollama, FastAPI, and tunnel are running. The temporary tunnel URL may change after restarting it.
+> Note: The backend root URL does not provide a homepage. Use `/health` to check backend availability and `/docs` to explore and test the API.
 
 ## Features
 
